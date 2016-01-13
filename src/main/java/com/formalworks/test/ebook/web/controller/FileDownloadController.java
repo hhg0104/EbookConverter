@@ -1,4 +1,4 @@
-﻿package com.formalworks.test.ebook.web.controller;
+package com.formalworks.test.ebook.web.controller;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
