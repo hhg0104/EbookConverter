@@ -1,0 +1,48 @@
+package com.formalworks.test.ebook.web.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.formalworks.test.ebook.web.dao.ParagraphDao;
+
+public class ByOriginalService implements ParagraphDao {
+	@Autowired
+	RecognizingTableOfContents tableContents;
+	@Autowired
+	ExtraLogic extraLogic;
+	private List<String> MDContent;
+
+	public ByOriginalService() {
+		extraLogic = new ExtraLogic();
+		tableContents = new RecognizingTableOfContents();
+		MDContent = new ArrayList<String>();
+	}
+
+	@Override
+	public List<String> arrangeParagraph(List<String> originContent, int startLine) {
+		extraLogic.isIntroduction(originContent, startLine);
+		for (int i = startLine; i < originContent.size(); i++) {
+
+			String line = originContent.get(i).trim();
+
+			if (tableContents.isTableOfContents(line))
+				insertTableOfContent(line);
+			else
+				insertCompletedParagraph(line);
+		}
+		return MDContent;
+	}
+
+	@Override
+	public void insertTableOfContent(String line) {
+		MDContent.add("");
+		MDContent.add("#" + line);
+	}
+
+	@Override
+	public void insertCompletedParagraph(String line) {
+		MDContent.add(line);
+	}
+}

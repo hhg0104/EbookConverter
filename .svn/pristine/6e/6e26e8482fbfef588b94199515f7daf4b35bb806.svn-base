@@ -1,0 +1,116 @@
+package com.formalworks.test.ebook.web.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.formalworks.test.ebook.web.dao.ParagraphDao;
+
+public class ByPeriodService implements ParagraphDao {
+
+	RecognizingTableOfContents tableContents;
+	ExtraLogic extraLogic;
+
+	protected List<String> MDContent;
+	private StringBuffer paragraph;
+	private char firstCharQuotedMultipleLines;
+
+
+	public ByPeriodService() {
+		tableContents = new RecognizingTableOfContents();
+		extraLogic = new ExtraLogic();
+		paragraph = new StringBuffer();
+		MDContent = new ArrayList<String>();
+	}
+
+	@Override
+	public List<String> arrangeParagraph(List<String> originContent, int startLine) {
+		extraLogic.isIntroduction(originContent, startLine);
+		for (int i = startLine; i < originContent.size(); i++) {
+
+			String line = originContent.get(i).trim();
+			if (line.length() != 0) {
+
+				if (extraLogic.isDialogLine(line)) {
+					flushString();
+					insertOneLineAsParagraph(line);
+				} else {
+					recognizeTableOfContents(i, line);
+				}
+			} else {
+				flushString();
+			}
+		}
+
+		flushString();
+		return MDContent;
+
+	}
+
+	private void flushString() {
+		if (!paragraph.toString().equals("")) {
+			MDContent.add(paragraph.toString());
+			MDContent.add("");
+			paragraph = new StringBuffer();
+		}
+	}
+
+	private void insertOneLineAsParagraph(String line) {
+		MDContent.add(line);
+		MDContent.add("");
+	}
+
+	private void recognizeTableOfContents(int lineNum, String line) {
+		if (tableContents.isTableOfContents(line)) {
+			flushString();
+			insertTableOfContent(line);
+		} else {
+			isParagraphOrDialogLines(line);
+		}
+	}
+
+	@Override
+	public void insertTableOfContent(String line) {
+		MDContent.add("#" + line);
+		MDContent.add("");
+	}
+
+	private void isParagraphOrDialogLines(String line) {
+		saveFirstCharOfQuotedMultipleLines(line);
+		mergeParagraph(line);
+	}
+
+	protected void saveFirstCharOfQuotedMultipleLines(String line) {
+		if ((line.startsWith("\"") && !line.endsWith("\"")) ||
+				(line.startsWith("'") && !line.endsWith("'")) ||
+				(line.startsWith("`") && !line.endsWith("`")) ||
+				(line.startsWith("-") && !line.endsWith("-")) ||
+				(line.startsWith("(") && !line.endsWith(")")) ||
+				(line.startsWith("“") && !line.endsWith("”"))) {
+
+			firstCharQuotedMultipleLines = line.charAt(0);
+		}
+	}
+
+	private void mergeParagraph(String line) {
+		if (isLastLineOfParagraph(line))
+			insertCompletedParagraph(line);
+		else {
+			if (extraLogic.isAppendingBlankNecessary(line))
+				line += " ";
+			paragraph.append(line);
+		}
+	}
+
+	private boolean isLastLineOfParagraph(String line) {
+		char lastChar = line.charAt(line.length() - 1);
+		return ((lastChar == firstCharQuotedMultipleLines) || (lastChar == '.'));
+	}
+
+	@Override
+	public void insertCompletedParagraph(String line) {
+		paragraph.append(line);
+		MDContent.add(paragraph.toString());
+		MDContent.add("");
+		paragraph = new StringBuffer();
+	}
+}

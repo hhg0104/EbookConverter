@@ -1,0 +1,64 @@
+package com.formalworks.test.ebook.web.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.formalworks.test.ebook.web.dao.EBook;
+
+public class MakeFullMDContents {
+	private EBook ebook;
+	private List<String> fullMDContents;
+	private int startLine;
+
+	public MakeFullMDContents(EBook ebook) {
+		this.ebook = ebook;
+		startLine = ebook.getStartLine();
+		fullMDContents = new ArrayList<String>();
+	}
+
+	public List<String> mergeFullMDContents() {
+		String title = ebook.getMetaInfo().getTitle();
+		String author = ebook.getMetaInfo().getAuthor();
+
+		if (!title.isEmpty())
+			fullMDContents.add("%" + title);
+
+		if (!author.isEmpty())
+			fullMDContents.add("%" + author);
+
+		insertBeforeStartLineContents(title, author);
+
+		return fullMDContents;
+	}
+
+	private void insertBeforeStartLineContents(String title, String author) {
+		int mdStartLine = 0;
+		for (int i = 2; i < startLine; i++) {
+			String beforeStartLine = ebook.getOriginalContents().get(i).trim();
+			String startLineSentence = ebook.getOriginalContents().get(startLine - 1).trim();
+			mdStartLine = getStartLineIndexInMDContents(startLineSentence);
+			if (StringUtils.contains(beforeStartLine, title) || StringUtils.contains(beforeStartLine, author))
+				continue;
+			else
+				fullMDContents.add(beforeStartLine);
+		}
+		insertAfterStartLineContents(mdStartLine);
+	}
+
+	private void insertAfterStartLineContents(int mdStartLine) {
+		for (int i = mdStartLine; i < ebook.getMDContents().size(); i++) {
+			String afterStartLine = ebook.getMDContents().get(i);
+			fullMDContents.add(afterStartLine);
+		}
+	}
+
+	private int getStartLineIndexInMDContents(String startLine) {
+		for (int i = 0; i < ebook.getMDContents().size(); i++) {
+			if (StringUtils.contains(ebook.getMDContents().get(i), startLine))
+				return i;
+		}
+		return -1;
+	}
+}

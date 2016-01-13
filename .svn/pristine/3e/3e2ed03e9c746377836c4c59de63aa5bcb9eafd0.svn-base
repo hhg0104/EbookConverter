@@ -1,0 +1,28 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+
+<%@ include file="../jsp/header.jsp"  %>
+<%@ include file="../jsp/menu.jsp"  %>
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+</head>
+<body>
+
+	<h3>파일 다운로드</h3>
+
+	<h5>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;파일 변환이 완료되었습니다.</h5>
+	
+	<form action="download" class="margin_file"><br>
+	<input type = "button" class="button" value="처음으로" onclick="location.href='/EC/book'" >
+		<input type ="button" class="button" value="이전" onclick="back()" >
+		<input type ="submit" class="button" value="다운로드">
+	</form><br>
+	
+	
+<%@ include file="../jsp/footer.jsp"  %>
+
+</body>
+</html>

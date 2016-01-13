@@ -1,0 +1,219 @@
+package com.formalworks.test.ebook.web.model;
+
+import java.util.List;
+
+import com.formalworks.test.ebook.web.dao.EBook;
+
+
+public class EBookImp implements EBook {
+
+	private MetaInfo metaInfo;
+
+	private final List<String> originalContents;
+	private List<String> mdContents;
+	private List<String> tableOfContents;
+	private List<String> optionAppliedContents;
+	private List<String> fullMDContents;
+	private String sampleContents;
+	private String previewContents;
+	private int startLine;
+
+	private String paragraphOption;
+	
+	public EBookImp(MetaInfo metaInfo, List<String> contents) {
+		this.metaInfo = metaInfo;
+		this.originalContents = contents;
+		this.tableOfContents = MetaInfo.extractTableOfContents(contents);
+	}
+
+	@Override
+	public List<String> getTableOfContents() {
+		return this.tableOfContents;
+	}
+	
+	@Override
+	public MetaInfo getMetaInfo() {
+		return this.metaInfo;
+	}
+	
+	@Override
+	public void setMetaInfo(MetaInfo metaInfo) {
+		this.metaInfo = metaInfo;
+	}
+	
+	@Override
+	public void setContributor(String contributor) {
+		this.metaInfo.setContributor(contributor);
+	}
+
+	@Override
+	public void setCoverage(String coverage) {
+		this.metaInfo.setCoverage(coverage);		
+	}
+
+	@Override
+	public void setCreator(String creator) {
+		this.metaInfo.setCreator(creator);
+	}
+
+	@Override
+	public void setDate(String date) {
+		this.metaInfo.setDate(date);		
+	}
+
+	@Override
+	public void setDescription(String description) {
+		this.metaInfo.setDescription(description);		
+	}
+
+	@Override
+	public void setFormat(String format) {
+		this.metaInfo.setFormat(format);
+	}
+
+	@Override
+	public void setIdentifier(String identifier) {
+		this.metaInfo.setIdentifier(identifier);
+	}
+
+	@Override
+	public void setLanguage(String language) {
+		this.metaInfo.setLanguage(language);		
+	}
+
+	@Override
+	public void setPublisher(String publisher) {
+		this.metaInfo.setPublisher(publisher);
+	}
+
+	@Override
+	public void setRelation(String relation) {
+		this.metaInfo.setRelation(relation);
+	}
+
+	@Override
+	public void setRights(String rights) {
+		this.metaInfo.setRights(rights);
+	}
+
+	@Override
+	public void setSource(String source) {
+		this.metaInfo.setSource(source);		
+	}
+
+	@Override
+	public void setSubject(String subject) {
+		this.metaInfo.setSubject(subject);
+	}
+
+	@Override
+	public void setTitle(String title) {
+		this.metaInfo.setTitle(title);
+	}
+
+	@Override
+	public void setType(String type) {
+		this.metaInfo.setType(type);
+	}
+
+	@Override
+	public void setOutputPath(String outputPath) {
+		this.metaInfo.setOutputMdFilePath(outputPath);		
+	}
+	
+	@Override
+	public List<String> getOriginalContents() {
+		return this.originalContents;
+	}
+
+	@Override
+	public List<String> getMDContents() {
+		return this.mdContents;
+	}
+
+	@Override
+	public void setMDContents(List<String> MDContents) {
+		this.mdContents = MDContents;
+	}
+
+	@Override
+	public void setContents(List<String> contents) {
+		this.mdContents = contents;
+	}
+
+	@Override
+	public String getFilePath() {
+		return this.metaInfo.getFilePath();
+	}
+
+	@Override
+	public String getOutputMdFilePath() {
+		return this.metaInfo.getOutputMdFilePath();
+	}
+
+	@Override
+	public void setOutputMdFilePath(String path) {
+		this.metaInfo.setOutputMdFilePath(path);
+	}
+
+	@Override
+	public List<String> getOptionAppliedMDContents() {
+		return optionAppliedContents;
+	}
+
+	@Override
+	public void setOptionAppliedMDContents(List<String> optionAppliedContents) {
+		this.optionAppliedContents = optionAppliedContents;
+	}
+
+	@Override
+	public int getStartLine() {
+		return startLine;
+	}
+
+	@Override
+	public void setStartLine(int startLine) {
+		this.startLine = startLine;
+	}
+
+	@Override
+	public List<String> getFullMDContents() {
+		return fullMDContents;
+	}
+
+	@Override
+	public void setFullMDContents(List<String> fullMDContents) {
+		this.fullMDContents = fullMDContents;
+	}
+
+	@Override
+	public String getSampleContents() {
+		return sampleContents;
+	}
+
+	@Override
+	public void setSampleContents(String sampleContents) {
+		this.sampleContents = sampleContents;
+	}
+
+	@Override
+	public String getPreviewContents() {
+		return previewContents;
+	}
+
+	@Override
+	public void setPreviewContents(String previewContents) {
+		this.previewContents = previewContents;
+	}
+
+	@Override
+	public String getParagarphOption() {
+		return paragraphOption;
+	}
+
+	@Override
+	public void setParagraphOption(String option) {
+		this.paragraphOption = option;
+	}
+	
+}

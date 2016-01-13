@@ -1,0 +1,87 @@
+package com.formalworks.test.ebook.web.service;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Component;
+
+@Component
+public class ExtraLogic {
+
+	public boolean isDialogLine(String line) {
+		if (line == null) {
+			return false;
+		}
+		String regex = "(\"|'|`|-|“)(.*)(\"|'|`|-|”)";
+		return line.matches(regex) || isLineCoveredByParentheses(line);
+	}
+
+	private boolean isLineCoveredByParentheses(String line) {
+		return line.startsWith("(") && line.endsWith(")");
+	}
+
+	public String isIntroduction(List<String> originContents, int startLine) {
+		String[] keyWord = { "머리", "머릿", "서두", "서문", "책을펴내며" };
+		for (int i = 0; i < startLine + 10; i++) {
+			String line = StringUtils.deleteWhitespace(originContents.get(i));
+			for (String word : keyWord) {
+				if (StringUtils.contains(line, word) && line.length() < 10 && !line.startsWith("#")) {
+					line = "#" + line;
+					originContents.set(i, line);
+					return null;
+				}
+			}
+		}
+		return null;
+	}
+
+	private static final String[] KEY_WORDS = { "혈혈", "드물", "그래서", "그러나", "그러므로", "그런데", "그니까", "언제", "어디서", "무엇을",
+			"어떻게", "금방", "빨리", "재빨리", "아주", "난생", "비싼", "있으리오", "뜨내기", "잠자코", "거에요", "위해", "잠자코", "근원적인", "적인", "함께" };
+
+	public boolean isAppendingBlankNecessary(String line) {
+		String lastWord = findLastWord(line);
+		if (Arrays.asList(KEY_WORDS).contains(lastWord)) {
+			return true;
+		} else {
+			return isBlankNecessaryMeasuredByLastChar(line, lastWord);
+		}
+	}
+
+	static String findLastWord(String line) {
+		if (line == null) {
+			return "";
+		}
+
+		int index = line.lastIndexOf(' ');
+		String result = line;
+		if (index >= 0) {
+			result = line.substring(index).trim();
+		}
+		return result;
+	}
+
+	private final String oneLengthSyllableForTypo = "듯흰및왜왠때.,?!\"'`&";
+
+	private final String twoOrThreeLengthSyllableForTypo = "은는이가다을를에의운와과든어던한떡때데로적면온럭큼고럭만들도실랜게히될써될써져까듯씩.,?!\"'`&”";
+
+	private final String moreThanThreeLengthSyllableForTypo = "은는이다가을를에의어와가면서과데터때고도면될나써큼게던한로져까듯씩.,?!\"'`&”";
+
+	private boolean isBlankNecessaryMeasuredByLastChar(String line, String lastWord) {
+		char lastCharOfLastWord = getLastCharOfLastWord(lastWord);
+
+		if (lastWord.length() == 1) {
+			return oneLengthSyllableForTypo.indexOf(lastCharOfLastWord) != -1;
+
+		} else if (lastWord.length() <= 3) {
+			return twoOrThreeLengthSyllableForTypo.indexOf(lastCharOfLastWord) != -1;
+
+		} else {
+			return moreThanThreeLengthSyllableForTypo.indexOf(lastCharOfLastWord) != -1;
+		}
+	}
+
+	private char getLastCharOfLastWord(String lastWord) {
+		return lastWord.charAt(lastWord.length() - 1);
+	}
+}

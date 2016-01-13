@@ -1,0 +1,137 @@
+package com.formalworks.test.ebook.web.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.formalworks.test.ebook.web.dao.EBook;
+import com.formalworks.test.ebook.web.dao.ParagraphDao;
+
+public class ByIndentService implements ParagraphDao {
+
+	RecognizingTableOfContents tableContents;
+	ExtraLogic extraLogic;
+	private List<String> originContent;
+	private List<String> MDContent;
+	private StringBuffer paragraph;
+
+	public ByIndentService() {
+		tableContents = new RecognizingTableOfContents();
+		extraLogic = new ExtraLogic();
+		paragraph = new StringBuffer();
+		MDContent = new ArrayList<String>();
+	}
+
+	@Override
+	public List<String> arrangeParagraph(EBook ebook) {
+		// 중복으로 텍스트 내용이 들어가지 않게 초기화한다.
+		if (!MDContent.isEmpty())
+			MDContent = new ArrayList<String>();
+
+		this.originContent = ebook.getOriginalContents();
+		int startLine = ebook.getStartLine();
+
+		extraLogic.isIntroduction(originContent, startLine);
+		for (int i = startLine; i < originContent.size(); i++) {
+
+			String line = originContent.get(i);
+			String lineTrimmed = line.trim();
+
+			if (!lineTrimmed.equals("")) {
+				recognizeTableOfContents(i, line, lineTrimmed);
+			} else {
+				flushString();
+			}
+		}
+		return MDContent;
+	}
+
+	private void insertOneLineAsParagraph(String lineTrimmed) {
+		MDContent.add(lineTrimmed);
+		MDContent.add("");
+	}
+
+	private void recognizeTableOfContents(int lineNum, String line, String lineTrimmed) {
+		if (tableContents.isAlreadyRecognizedAsTableOfContents(lineTrimmed)
+				|| tableContents.isTableOfContents(lineTrimmed)) {
+			flushString();
+			insertTableOfContent(lineTrimmed);
+		} else {
+			mergeByIndent(lineNum, line, lineTrimmed);
+		}
+	}
+
+	private void flushString() {
+		if (!paragraph.toString().equals("")) {
+			MDContent.add(paragraph.toString());
+			paragraph = new StringBuffer();
+		}
+	}
+
+	@Override
+	public void insertTableOfContent(String line) {
+		if (line.startsWith("#")) {
+			MDContent.add(line);
+			MDContent.add("");
+		} else {
+			MDContent.add("#" + line);
+			MDContent.add("");
+		}
+	}
+
+	private void mergeByIndent(int i, String line, String lineTrimmed) {
+		if (i != originContent.size() - 1) {
+			String nextLine = originContent.get(i + 1);
+
+			int lineCount = countBlankIndent(line);
+			int nextLineCount = 0;
+
+			if (nextLine.trim().equals("")) {
+				insertCompletedParagraph(lineTrimmed);
+			} else {
+				nextLineCount = countBlankIndent(nextLine);
+				makeParagraph(lineTrimmed, lineCount, nextLineCount);
+			}
+
+		} else {
+			paragraph.append(lineTrimmed);
+			MDContent.add(paragraph.toString());
+		}
+	}
+
+	private int countBlankIndent(String line) {
+		int count = 0;
+		while (line.charAt(count) == ' ') {
+			count++;
+		}
+		return count;
+	}
+
+	private void makeParagraph(String lineTrimmed, int lineCount, int nextLineCount) {
+		if (lineCount > nextLineCount) {
+			needBlank(lineTrimmed);
+
+		} else if (lineCount == nextLineCount) {
+			if (paragraph.toString().equals(""))
+				insertOneLineAsParagraph(lineTrimmed);
+			else
+				needBlank(lineTrimmed);
+		} else {
+			insertCompletedParagraph(lineTrimmed);
+		}
+	}
+
+	private void needBlank(String lineTrimmed) {
+		if (extraLogic.isAppendingBlankNecessary(lineTrimmed))
+			paragraph.append(lineTrimmed + " ");
+		else
+			paragraph.append(lineTrimmed);
+	}
+
+	@Override
+	public void insertCompletedParagraph(String lineTrimmed) {
+		paragraph.append(lineTrimmed);
+		MDContent.add(paragraph.toString());
+		MDContent.add("");
+		paragraph = new StringBuffer();
+	}
+}

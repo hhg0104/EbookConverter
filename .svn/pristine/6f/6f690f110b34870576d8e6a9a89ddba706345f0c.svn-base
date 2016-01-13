@@ -1,0 +1,55 @@
+package com.formalworks.test.ebook.web.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.formalworks.test.ebook.web.dao.EBook;
+import com.formalworks.test.ebook.web.model.EBookFactory;
+
+@Controller
+public class CheckFirstLineController {
+
+	EBook ebook;
+	@Autowired
+	EBookFactory ebookFactory;
+
+	@RequestMapping(value = "/check", method = RequestMethod.POST)
+	public String checkFirstLine(@RequestParam("title") String title, @RequestParam("author") String author, Model model) {
+		ebook = ebookFactory.getInstance();
+		ebook.getMetaInfo().setTitle(title);
+		ebook.getMetaInfo().setAuthor(author);
+
+		List<String> origin = ebook.getOriginalContents();
+		StringBuffer sample = new StringBuffer();
+
+		if (origin.size() > 150) {
+
+			for (int i = 0; i <= 150; i++) {
+				String line = origin.get(i);
+				sample.append(makeCount(i) + line + "\n");
+			}
+		} else {
+			for (int i = 0; i < origin.size(); i++) {
+				String line = origin.get(i);
+				sample.append(makeCount(i) + line + "\n");
+			}
+		}
+		model.addAttribute("sample", sample.toString());
+		return "checkFirstLine";
+	}
+
+	private String makeCount(int count) {
+		if (count < 10)
+			return "00" + (count + "" + ".   ");
+		else if (count < 100)
+			return "0" + (count + "" + ".   ");
+		else
+			return count + "" + ".   ";
+	}
+}

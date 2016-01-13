@@ -1,0 +1,89 @@
+package com.formalworks.test.ebook.web.service;
+
+import java.util.List;
+
+import org.apache.commons.lang.math.NumberUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.formalworks.test.ebook.web.dao.EBook;
+import com.formalworks.test.ebook.web.model.EBookFactory;
+
+@Component
+public class RecognizingTableOfContents {
+	@Autowired
+	EBookFactory ebookFactory;
+	EBook ebook;
+
+	private List<String> originContent;
+	private int longestLineLength;
+	private String firstTableLine;
+	private boolean isFirstTableContainNum;
+
+	public boolean isFirstTableContainNum() {
+		return isFirstTableContainNum;
+	}
+
+	public boolean seemsTableLineWithoutNum(String line) {
+		return ((line.length() < longestLineLength * 7 / 10) && !line.contains("."));
+	}
+
+	public boolean isTableOfContents(String line) {
+		String regex = "(\\d+\\.|\\(\\d+\\)|\\d+\\)|제\\d+|\\d+\\부)(.*)";
+//		boolean result = false;
+//		if (firstTableLine.isEmpty()) {
+//			result = setFirstTableLine(line, regex);
+//		} else {
+//			return containsNumFirstTableLine(line, regex);
+//		}
+		return line.matches(regex) && (!line.endsWith("'") || !line.endsWith("\"") || !line.endsWith("”"));
+	}
+
+	private boolean setFirstTableLine(String line, String regex) {
+		boolean result;
+		result = allCaseAsTableLine(line, regex);
+		if (result) {
+			firstTableLine = line;
+		}
+		return result;
+	}
+
+	private boolean allCaseAsTableLine(String line, String regex) {
+		return line.matches(regex) || ((line.length() < longestLineLength * 7 / 10)
+				&& (containsNum(line) || !line.contains(".")));
+	}
+
+	private boolean containsNumFirstTableLine(String line, String regex) {
+		if (containsNum(firstTableLine)) {
+			isFirstTableContainNum = true;
+			return line.matches(regex);
+		} else {
+			return allCaseAsTableLine(line, regex);
+		}
+	}
+
+	private boolean containsNum(String line) {
+		char[] charArray = line.toCharArray();
+		boolean result = false;
+
+		for (int i = 0; i < charArray.length; i++) {
+			if (NumberUtils.isNumber(charArray[i] + "")) {
+				result = true;
+				return result;
+			}
+		}
+		return result;
+	}
+
+	public int findLongestLineLength(List<String> originContent) {
+
+		int max = 0;
+		for (int i = 0; i < originContent.size() && i < 50; i++) {
+			int size = originContent.get(i).length();
+			if (max < size) {
+				max = size;
+			}
+		}
+		return max;
+	}
+}

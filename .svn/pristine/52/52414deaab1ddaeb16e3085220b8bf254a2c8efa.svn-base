@@ -1,0 +1,174 @@
+package com.formalworks.test.ebook.web.controller;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.formalworks.test.ebook.web.dao.EBook;
+import com.formalworks.test.ebook.web.dao.ParagraphDao;
+import com.formalworks.test.ebook.web.model.EBookFactory;
+import com.formalworks.test.ebook.web.service.ByBlankLineService;
+import com.formalworks.test.ebook.web.service.ByIndentService;
+import com.formalworks.test.ebook.web.service.ByOriginalService;
+import com.formalworks.test.ebook.web.service.ByPeriodService;
+import com.formalworks.test.ebook.web.service.MakeFullMDContents;
+
+@Controller
+@RequestMapping(value = "/paragraph")
+public class ParagraphController {
+	ParagraphDao paraDao;
+	EBook ebook;
+	@Autowired
+	EBookFactory ebookFactory;
+	MakeFullMDContents fullMD;
+
+	@RequestMapping(value = "/startLine", method = RequestMethod.GET)
+	public String checkFirstLine(Model model, HttpServletRequest request) {
+		ebook = ebookFactory.getInstance();
+		List<String> origin = ebook.getOriginalContents();
+		StringBuffer sample = new StringBuffer();
+
+		if (origin.size() > 150) {
+
+			for (int i = 0; i <= 150; i++) {
+				String line = origin.get(i);
+				sample.append(makeCount(i) + line + "\n");
+			}
+		} else {
+			for (int i = 0; i < origin.size(); i++) {
+				String line = origin.get(i);
+				sample.append(makeCount(i) + line + "\n");
+			}
+		}
+		ebook.setSampleContents(sample.toString());
+		model.addAttribute("sample", ebook.getSampleContents());
+		return "checkFirstLine";
+	}
+
+	private String makeCount(int count) {
+		if (count < 10)
+			return "00" + (count + "" + ".   ");
+		else if (count < 100)
+			return "0" + (count + "" + ".   ");
+		else
+			return count + "" + ".   ";
+	}
+
+	@RequestMapping(value = "/startLine", method = RequestMethod.PUT)
+	public String checkFirstLine(Model model) {
+
+		model.addAttribute("startLine", ebook.getStartLine());
+		model.addAttribute("sample", ebook.getSampleContents());
+		return "checkFirstLine";
+	}
+
+	@RequestMapping(value = "/option", method = RequestMethod.POST)
+	public String setStartLine(@RequestParam("startLine") String startLine) {
+		ebook.setStartLine(Integer.parseInt(startLine));
+		return "paragraph";
+	}
+
+	@RequestMapping(value = "/option", method = RequestMethod.PUT)
+	public String chooseParagraph(Model model) {
+		model.addAttribute("option", ebook.getParagarphOption());
+		return "paragraph";
+	}
+
+	@RequestMapping(value = "/settingEnd", method = RequestMethod.POST)
+	public String finishSetting(@RequestParam("option") String option, Model model) {
+		fullMD = new MakeFullMDContents(ebook);
+		int startLine = ebook.getStartLine();
+
+		List<String> originContent = ebook.getOriginalContents();
+
+		optionApply(option, startLine, originContent);
+
+		ebook.setFullMDContents(fullMD.mergeFullMDContents());
+
+		model.addAttribute("title", ebook.getMetaInfo().getTitle());
+		model.addAttribute("author", ebook.getMetaInfo().getAuthor());
+		model.addAttribute("option", ebook.getParagarphOption());
+
+		if (option.equals("origin")) {
+			model.addAttribute("option", "원본기준");
+		} else if (option.equals("indent")) {
+			model.addAttribute("option", "들여쓰기기준");
+		} else if (option.equals("period")) {
+			model.addAttribute("option", "마침표기준");
+		} else if (option.equals("blank")) {
+			model.addAttribute("option", "빈줄기준");
+		}
+
+		return "settingCompleted";
+	}
+
+	@RequestMapping(value = "/preview", method = RequestMethod.GET)
+	public String arrangeParagraph(@RequestParam("option") String option, Model model) {
+
+		fullMD = new MakeFullMDContents(ebook);
+		int startLine = ebook.getStartLine();
+
+		List<String> originContent = ebook.getOriginalContents();
+
+		optionApply(option, startLine, originContent);
+
+		ebook.setFullMDContents(fullMD.mergeFullMDContents());
+		ebook.setPreviewContents(listToString(ebook.getFullMDContents()));
+		model.addAttribute("mdContents", ebook.getPreviewContents());
+
+		return "preview";
+	}
+
+	private void optionApply(String option, int startLine, List<String> originContent) {
+		if (option.equals("origin")) {
+			paraDao = new ByOriginalService();
+			ebook.setMDContents(paraDao.arrangeParagraph(originContent, startLine));
+
+		} else if (option.equals("indent")) {
+			paraDao = new ByIndentService();
+			ebook.setMDContents(paraDao.arrangeParagraph(originContent, startLine));
+
+		} else if (option.equals("period")) {
+			paraDao = new ByPeriodService();
+			ebook.setMDContents(paraDao.arrangeParagraph(originContent, startLine));
+
+		} else if (option.equals("blank")) {
+			paraDao = new ByBlankLineService();
+			ebook.setMDContents(paraDao.arrangeParagraph(originContent, startLine));
+
+		}
+	}
+
+	private String listToString(List<String> listContents) {
+		StringBuffer contents = new StringBuffer();
+
+		for (int i = 0; i < listContents.size(); i++) {
+			String line = listContents.get(i).trim();
+			if (!line.isEmpty() && (line.charAt(0) == '#' || line.charAt(0) == '%')) {
+				char firstChar = line.charAt(0);
+				line = toHTML(line, firstChar);
+
+				if (i < listContents.size() && listContents.get(i + 1).isEmpty())
+					contents.append(line);
+				else
+					contents.append(line + "<br>");
+			} else
+				contents.append(line + "<br>");
+		}
+		return contents.toString();
+	}
+
+	private String toHTML(String line, char firstChar) {
+		line += "</h3>";
+
+		return StringUtils.replace(line, firstChar + "", "<h3>");
+	}
+}

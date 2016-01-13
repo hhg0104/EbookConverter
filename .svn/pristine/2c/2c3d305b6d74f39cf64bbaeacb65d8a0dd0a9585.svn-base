@@ -1,0 +1,43 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+
+<%@ include file="../jsp/header.jsp"  %>
+<%@ include file="../jsp/menu.jsp"  %>
+
+<script>
+	
+	function getPreview(){
+		var options=document.getElementsByName("option");
+		for(var i = 0, length = options.length; i < length; i++){
+			if(options[i].checked){
+			var URL="arrangement/preview?option="+options[i].value;
+				window.open(URL,"", "height=900, width=800, scrollbars=1, resizeable=yes, left=200");
+				break;
+			}
+		}
+	}
+</script>
+
+
+	<h3>문단구분 설정하기</h3>
+	<form action="../confirmSetting" onSubmit=""class="margin_file" method="POST">
+		<input type="radio" class="checkable" name="option" value="origin" checked="checked">원본(default)<br> 
+		<input type="radio" class="checkable" name="option" value="period">마침표<br>
+		<input type="radio" class="checkable" name="option" value="indent">들여쓰기<br>
+		<input type="radio" class="checkable" name="option" value="blank">빈줄기준<br><br><br>
+	
+	
+	<input type = "button" class="button" value="미리보기" onclick="getPreview()">
+	
+	<input type = "button" class="button" value="처음으로" onclick="location.href='/EC/book'" >
+	
+	<input type = "button" class="button" value="이전" onclick="back()" >
+	
+	<input type = "submit" class="button" value="다음">
+	</form>
+	
+<%@ include file="../jsp/footer.jsp"  %>
+</body>
+<script src="js/svgcheckbx.js"></script>
+
+</html>

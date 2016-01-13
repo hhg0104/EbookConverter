@@ -1,0 +1,111 @@
+package com.formalworks.test.ebook.converter;
+
+import static org.junit.Assert.assertEquals;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.junit.Test;
+
+public class TestExtractTableOfContents {
+
+	List<String> testList = new ArrayList<String>();
+	List<String> tableContents = new ArrayList<String>();
+	int startLinePara = 30;
+	int startLineOfTable = 0;
+
+	@Test
+	public void testExtractTableOfContents() {
+		List<String> actual = new ArrayList<String>();
+		try {
+			extractTableContents();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		List<String> expected = new ArrayList<String>();
+		actual = tableContents;
+		expected.add("목 차");
+		expected.add("부끄럽지 않은 마음과 예(藝)");
+		expected.add("하늘에 어찌 두 태양이 있으리오");
+		expected.add("이 슬프고 가여운 원혼을 어찌할 것인가");
+		expected.add("재에 공을 더하면 예");
+		expected.add("꿈틀거리는 국토");
+		expected.add("먹빛으로 그린 세상");
+		expected.add("저항과 자적");
+		expected.add("사람의 길이 하늘에 닿아 있어");
+		expected.add("가슴을 하늘에 두니");
+		expected.add("어항과 고래");
+		expected.add("자연의 길과 인간의 길");
+		expected.add("새싹들은 어떻게 자라날까");
+		expected.add("사유의 뿌리내리기");
+		expected.add("남산이 남산이라고 불린 까닭은");
+		expected.add("마음이 곧 이치인데");
+		expected.add("나라가 위태로우면 목숨을 바친다");
+		expected.add("돌 같은 마음과 고리 같은 마음");
+		expected.add("치욕과 애국 사이의 갈림길에서");
+		expected.add("영혼만은 즐거이 고국으로 돌아가리");
+		expected.add("도는 큰 바다와 같아서 들어갈수록 깊어지니");
+		assertEquals(expected, actual);
+	}
+
+	private void extractTableContents() throws IOException {
+		testList = readFile();
+		if (null == getTableOfContentsOwned(testList, startLinePara))
+			System.out.println("목차없음");
+		else
+			startLineOfTable = Integer.parseInt(getTableOfContentsOwned(testList, startLinePara));
+
+		for (int i = startLineOfTable; i < startLinePara; i++) {
+			String line = testList.get(i).trim();
+			if (!line.isEmpty())
+				tableContents.add(line);
+		}
+	}
+
+	private List<String> readFile() throws IOException {
+		return FileUtils.readLines(new File("C:/Users/hyunggeun/workspace/EC/src/test/java/k695.txt"),
+				"EUC-KR");
+	}
+
+	private String getTableOfContentsOwned(List<String> testList/* originContents */, int startLinePara) {
+		String startLineOfTableOfContents;
+		String[] tableKeyword = { "목차", "차례", "순서" };
+		for (int i = 0; i < startLinePara; i++) {
+			String line = testList.get(i);
+			for (String keyword : tableKeyword) {
+				if (StringUtils.contains(StringUtils.deleteWhitespace(line), keyword)) {
+					startLineOfTableOfContents = i + "";
+					return startLineOfTableOfContents;
+				}
+			}
+		}
+		return null;
+	}
+
+	@Test
+	public void testGetTableOfContentsWithoutNumbering() {
+		List<String> tableOfContents = new ArrayList<String>();
+		try {
+			testList = readFile();
+			extractTableContents();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		for (int i = startLinePara; i < testList.size(); i++) {
+			String mainLine = testList.get(i);
+			for (String tableLine : tableContents) {
+				tableLine = StringUtils.deleteWhitespace(tableLine);
+				if (StringUtils.contains(StringUtils.deleteWhitespace(mainLine), tableLine))
+					tableOfContents.add(mainLine);
+			}
+		}
+		for (String line : tableOfContents) {
+			System.out.println(line);
+		}
+	}
+}

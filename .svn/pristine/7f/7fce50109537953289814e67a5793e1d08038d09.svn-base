@@ -1,0 +1,19 @@
+@CHARSET "UTF-8";
+
+
+a { font:inherit; color:#FFF; text-decoration:none}
+a:hover { text-decoration:underline}
+#moveTo { position:absolute; top:4em; right:2em}
+#center { position:relative; overflow:hidden; width:100%;}
+
+
+#text { margin:20px; margin-top:0; line-height:150%; font-family:Verdana}
+#text table { border-left:1px solid #CCC; border-top:1px solid #CCC}
+#text table caption { font-weight:bold; text-align:left}
+#text table th { background:#666}
+#text table th,
+#text table td { padding:.5em; border-right:1px solid #CCC; border-bottom:1px solid #CCC; text-align:center}
+#links { position:relative; float:left; background:#CCCCCC; width:20%; clear:right; height:500px}
+#links ul { margin:20px; margin-top:0; padding:0}
+#links li { padding:5px; border-bottom:1px solid #FFF; color:#FFF; list-style:none}
+#footer { position:relative; clear:both; background: #666; font-family: Verdana; font-size:x-large; font-weight:bold; color:#FFF; padding:20px }

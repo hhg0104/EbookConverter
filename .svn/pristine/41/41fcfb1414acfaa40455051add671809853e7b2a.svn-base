@@ -1,0 +1,23 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+
+<%@ include file="../jsp/header.jsp"  %>
+<%@ include file="../jsp/menu.jsp"  %>
+
+	<h3>첫 문단 찾기</h3>
+	
+	<form action="./arrangement" style="font-size:25px" onSubmit="" class="margin_file" method="POST">
+	문단 정리가 필요한 첫 문단의 라인넘버를 입력해 주십시오.<br>
+	(그 문단에 소제목이 있다면, 그 소제목의 라인넘버를 입력해 주십시오.)<br>
+	<input type=text class = "fields" style="font-size:25px" name=startLine value="${startLine}">번째 라인
+	<br>
+
+	<textarea  class ="fields" rows="13"  cols="90" style="font-family:Nanum Gothic;font-size:20px" name =sampleText readonly>${sample}</textarea>
+	<br>
+	<input type = "button" class="button" value="처음으로" onclick="location.href='/EC/book'" ><input type = "button" class="button" value="이전" onclick="back()" ><input type = "submit" class="button" value="다음">
+	</form>
+	
+<%@ include file="../jsp/footer.jsp"  %>
+</body>
+
+</html>

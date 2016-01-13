@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	
+	<!-- <context:component-scan base-package="com.formalworks.test.ebook.web.service" />
+	<context:component-scan base-package="com.formalworks.test.ebook.web.model" />
+	<context:component-scan base-package="com.formalworks.test.ebook.web.dao" /> -->
+	
+	<bean id="metaInfo" class="com.formalworks.test.ebook.web.model.MetaInfo"/>
+	<bean id="ebookFactory" class="com.formalworks.test.ebook.web.model.EBookFactory"/>
+	<bean id="tableContents" class="com.formalworks.test.ebook.web.service.RecognizingTableOfContents"/>
+	<bean id="extraLogic" class="com.formalworks.test.ebook.web.service.ExtraLogic"/>
+	<bean id="paraDaoByOrigin" class="com.formalworks.test.ebook.web.service.ByOriginalService"/>
+	<bean id="paraDaoByPeriod" class="com.formalworks.test.ebook.web.service.ByPeriodService"/>
+	<bean id="paraDaoByIndent" class="com.formalworks.test.ebook.web.service.ByIndentService"/>
+	<bean id="paraDaoByBlankLine" class="com.formalworks.test.ebook.web.service.ByBlankLineService"/>
+	<bean id="paraController" class="com.formalworks.test.ebook.web.controller.ParagraphController" />
+	<bean id="fullContents" class="com.formalworks.test.ebook.web.service.MakeFullMDContents" />
+	<bean id="hashcodeGetter" class="com.formalworks.test.ebook.web.service.HashCodeExtractor" />
+</beans>

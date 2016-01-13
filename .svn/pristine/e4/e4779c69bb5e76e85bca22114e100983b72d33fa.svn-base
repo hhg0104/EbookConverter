@@ -1,0 +1,17 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+
+<%@ include file="../jsp/header.jsp"%>
+<%@ include file="../jsp/menu.jsp"%>
+
+<h3>입력받기</h3>
+
+<form action="/EC/book" class="margin_file"	method="post" enctype="multipart/form-data" onsubmit = "return fileOpen()">
+	<input type="file" class = "fields" name = "textFile" style="font-size:14px" id="s_file" /><br><br> 
+	<input	type="submit" class="button" value="보내기" />
+</form>
+
+<%@ include file="../jsp/footer.jsp"%>
+</body>
+
+</html>
