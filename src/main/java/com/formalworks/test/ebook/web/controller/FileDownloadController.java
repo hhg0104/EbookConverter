@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -27,13 +28,70 @@ public class FileDownloadController {
 	EBook ebook;
 	@Autowired
 	EBookFactory ebookFactory;
-	
+
 	// 임시로 생성되는 중간 파일들의 경로
-//	private String tempFileSavePath = "d:";
+	// private String tempFileSavePath = "d:";
 	private String tempFileSavePath = "D:" + File.separator;
-	
-	/** 
+
+	/**
+	 * default.epub 파일을 책제목.epub 파일로 복사
+	 *
+	 * @param srcFile
+	 */
+	private File copyEpubFile(File srcFile) {
+
+		String epubFileName = getEpubFileName();
+
+		String epubFilePath = tempFileSavePath + epubFileName;
+
+		File epubFile = new File(epubFilePath);
+
+		try {
+			FileUtils.copyFile(srcFile, epubFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		srcFile.delete(); // default.epub 파일 삭제
+
+		return epubFile;
+	}
+
+	/**
+	 * batch 파일 생성
+	 *
+	 * @param pandocInFile
+	 * @param pandocOutFile
+	 * @return
+	 */
+	private File createBatchFile(File pandocInFile, File pandocOutFile) {
+
+		ebook = ebookFactory.getInstance();
+
+		// batch 파일 명령어
+		String batCommand = "pandoc -f markdown -t epub --toc ";
+		if (!ebook.getCoverImg().equals("none")) {
+			batCommand += "--epub-cover-image ";
+			batCommand += tempFileSavePath + "cover.jpg ";
+		}
+		batCommand += tempFileSavePath + pandocInFile.getName();
+		batCommand += " -o " + tempFileSavePath + pandocOutFile.getName();
+
+		// batch 파일 경로
+		String batFilePath = tempFileSavePath + "MDtoEPUB.bat";
+
+		try {
+			FileUtils.writeStringToFile(new File(batFilePath), batCommand, Charset.forName("UTF-8"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return new File(batFilePath);
+	}
+
+	/**
 	 * Markdown 파일 생성
+	 *
 	 * @param ebook
 	 * @return
 	 */
@@ -47,60 +105,29 @@ public class FileDownloadController {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		// 책이름으로 생성된 md파일을 input.md 파일로 복사
 		File copiedMDFile = new File(tempFileSavePath + "input.md");
-		
+
 		// 생성된 md 파일을 input.md 파일로 복사
 		try {
 			FileUtils.copyFile(new File(ebook.getOutputMdFilePath()), copiedMDFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-//		new File(ebook.getOutputMdFilePath()).delete();
-		
-		return copiedMDFile;		
+
+		// new File(ebook.getOutputMdFilePath()).delete();
+
+		return copiedMDFile;
 	}
-	
 
-	/**
-	 * batch 파일 생성
-	 * @param pandocInFile
-	 * @param pandocOutFile
-	 * @return
-	 */
-	private File createBatchFile(File pandocInFile, File pandocOutFile) {
-			
-		ebook = ebookFactory.getInstance();
-
-		// batch 파일 명령어
-	    String batCommand = "pandoc -f markdown -t epub --toc ";
-	    if(!ebook.getCoverImg().equals("none")) {
-	    	batCommand += "--epub-cover-image ";
-	    	batCommand += (tempFileSavePath + "cover.jpg ");
-	    }
-	    batCommand += (tempFileSavePath + pandocInFile.getName());
-		batCommand += (" -o " + tempFileSavePath + pandocOutFile.getName());
-		
-		// batch 파일 경로
-		String batFilePath = tempFileSavePath + "MDtoEPUB.bat";
-		
-		try {
-			FileUtils.writeStringToFile(new File(batFilePath), batCommand);			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		return new File(batFilePath);
-	}	
-	
 	/**
 	 * batch 파일 실행
+	 *
 	 * @param batFilePath
 	 */
 	private void execBatchFile(String batFilePath) {
-		
+
 		try {
 			Process p;
 			p = Runtime.getRuntime().exec(batFilePath);
@@ -112,95 +139,73 @@ public class FileDownloadController {
 		}
 
 	}
-	
-	private String getEpubFileName() {
-		
-		ebook = ebookFactory.getInstance();
-		String epubTitle = StringUtils.deleteWhitespace(ebook.getMetaInfo().getTitle());
-		
-		String epubFileName = epubTitle + ".epub";
-		
-		return epubFileName;
-	}
-
-	/**
-	 * default.epub 파일을 책제목.epub 파일로 복사
-	 * 
-	 * @param srcFile
-	 */
-	private File copyEpubFile(File srcFile) {
-
-		String epubFileName = getEpubFileName();
-			
-		String epubFilePath = tempFileSavePath + epubFileName;
-		
-		File epubFile = new File(epubFilePath);
-
-		try {
-			FileUtils.copyFile(srcFile, epubFile);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		srcFile.delete();	// default.epub 파일 삭제
-		
-		return epubFile;
-	}
 
 	@RequestMapping(value = "/book/{bookId}/conversion", method = RequestMethod.POST)
 	public String fileConversion()
 	{
 		ebook = ebookFactory.getInstance();
-		
-		File inFile = createMDFile(ebook);	// pandoc 입력 md 파일
-		File outFile = new File(tempFileSavePath + "default.epub");	// pandoc 출력 epub 파일
-		
+
+		File inFile = createMDFile(ebook); // pandoc 입력 md 파일
+		File outFile = new File(tempFileSavePath + "default.epub"); // pandoc 출력
+		// epub 파일
+
 		File coverFile = new File(tempFileSavePath + "cover.jpg");
-		
+
 		// 배치 파일 생성
 		File batFile = createBatchFile(inFile, outFile);
 		// 배치 파일 실행
 		execBatchFile(batFile.getAbsolutePath());
 
-		inFile.delete();	// md 파일 삭제
-		batFile.delete();	// 배치 파일 삭제
-		coverFile.delete();	// 표지 파일 삭제
-		
+		inFile.delete(); // md 파일 삭제
+		batFile.delete(); // 배치 파일 삭제
+		coverFile.delete(); // 표지 파일 삭제
+
 		File defaultEpubFile = new File(tempFileSavePath + "default.epub");
-		
+
 		copyEpubFile(defaultEpubFile);
 
 		return "fileDownload";
 	}
-	
+
 	@RequestMapping(value = "/book/{bookId}/download", method = RequestMethod.POST)
-	public void fileDownload(HttpServletResponse response) throws IOException	{
-		
-		// default.epub 파일을 책제목.epub 파일로 복사 
+	public void fileDownload(HttpServletResponse response) throws IOException {
+
+		// default.epub 파일을 책제목.epub 파일로 복사
 		File objFile = new File(tempFileSavePath + getEpubFileName());
-		
+
 		// 다운로드할 epub 파일 이름
 		String downFileName = URLEncoder.encode(objFile.getName(), "UTF-8");
-				
-	 	response.setContentType("application/x-msdownload");
-		response.setHeader("Content-Disposition", "attachment;filename=" + downFileName);
-	 		 	
-	 	int nRead = 0;
-	    byte btReadByte[] = new byte[(int)objFile.length()];
-	    
-	    if(objFile.length() > 0 && objFile.isFile()) {
-	    	
-	        BufferedInputStream objBIS = new BufferedInputStream(new FileInputStream(objFile));
-	        BufferedOutputStream objBOS = new BufferedOutputStream(response.getOutputStream());
 
-	        while((nRead = objBIS.read(btReadByte)) != -1)
-	            objBOS.write(btReadByte, 0, nRead);
-	    
-	        objBOS.flush();
-	        objBOS.close();
-	        objBIS.close();
-	    }
-	    
+		response.setContentType("application/x-msdownload");
+		response.setHeader("Content-Disposition", "attachment;filename=" + downFileName);
+
+		int nRead = 0;
+		byte btReadByte[] = new byte[(int) objFile.length()];
+
+		if (objFile.length() > 0 && objFile.isFile()) {
+
+			BufferedInputStream objBIS = new BufferedInputStream(new FileInputStream(objFile));
+			BufferedOutputStream objBOS = new BufferedOutputStream(response.getOutputStream());
+
+			while ((nRead = objBIS.read(btReadByte)) != -1) {
+				objBOS.write(btReadByte, 0, nRead);
+			}
+
+			objBOS.flush();
+			objBOS.close();
+			objBIS.close();
+		}
+
+	}
+
+	private String getEpubFileName() {
+
+		ebook = ebookFactory.getInstance();
+		String epubTitle = StringUtils.deleteWhitespace(ebook.getMetaInfo().getTitle());
+
+		String epubFileName = epubTitle + ".epub";
+
+		return epubFileName;
 	}
 
 }
